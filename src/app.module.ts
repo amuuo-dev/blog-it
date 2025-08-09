@@ -5,11 +5,15 @@ import { TagModule } from './tag/tag.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AppDataSource } from './data-source';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     TagModule,
     TypeOrmModule.forRoot(AppDataSource.options),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     UserModule,
   ],
   controllers: [AppController],

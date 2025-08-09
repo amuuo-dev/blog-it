@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entity/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { sign } from 'jsonwebtoken';
 
 @Injectable()
 export class UserService {
@@ -20,17 +21,37 @@ export class UserService {
     if (existingUser)
       throw new UnauthorizedException('user with this email already exists!');
 
-    const { password, ...otherDetails } = createUserDto;
-
     const salt = await bcrypt.genSalt();
 
-    const userPassword = await bcrypt.hash(password, salt);
+    const userPassword = await bcrypt.hash(createUserDto.password, salt);
 
     const user = this.userRepository.create({
-      ...otherDetails,
+      email: createUserDto.email,
+      username: createUserDto.username,
       password: userPassword,
     });
 
-    return await this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+    return this.generateUserResponse(savedUser);
+  }
+
+  generateToken(user: UserEntity) {
+    return sign(
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+      },
+      process.env.JWT_SECRET!,
+    );
+  }
+
+  generateUserResponse(user: UserEntity) {
+    return {
+      user: {
+        ...user,
+        token: this.generateToken(user),
+      },
+    };
   }
 }
