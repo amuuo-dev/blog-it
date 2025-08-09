@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -5,6 +6,8 @@ import { UserEntity } from './entity/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { sign } from 'jsonwebtoken';
+import { LoginDto } from './dto/login.dto';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class UserService {
@@ -46,12 +49,23 @@ export class UserService {
     );
   }
 
-  generateUserResponse(user: UserEntity) {
+  generateUserResponse(user: any) {
     return {
       user: {
-        ...user,
+        ...instanceToPlain(user),
         token: this.generateToken(user),
       },
     };
+  }
+
+  async loginUser(loginDto: LoginDto) {
+    const user = await this.userRepository.findOneBy({ email: loginDto.email });
+    if (!user) throw new UnauthorizedException('wrong password or email');
+
+    const isMatch = await bcrypt.compare(loginDto.password, user.password);
+
+    if (!isMatch) throw new UnauthorizedException('wrong password or email');
+
+    return user;
   }
 }
