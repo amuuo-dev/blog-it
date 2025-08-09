@@ -4,20 +4,12 @@ import { AppService } from './app.service';
 import { TagModule } from './tag/tag.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
+import { AppDataSource } from './data-source';
 
 @Module({
   imports: [
     TagModule,
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5433,
-      username: 'postgres',
-      database: 'postgres',
-      password: 'pass123',
-      autoLoadEntities: true,
-      synchronize: true,
-    }),
+    TypeOrmModule.forRoot(AppDataSource.options),
     UserModule,
   ],
   controllers: [AppController],
