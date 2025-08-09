@@ -7,7 +7,7 @@ export class UserEntity {
   id: number;
   @IsString()
   username: string;
-  @Column()
+  @Column({ unique: true })
   email: string;
   @Column({ default: '' })
   bio: string;
