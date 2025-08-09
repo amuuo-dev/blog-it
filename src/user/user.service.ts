@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entity/user.entity';
@@ -66,6 +70,12 @@ export class UserService {
 
     if (!isMatch) throw new UnauthorizedException('wrong password or email');
 
+    return user;
+  }
+
+  async findById(id: number) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException(`user with id ${id} not found`);
     return user;
   }
 }
