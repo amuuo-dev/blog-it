@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { Request } from 'express';
 import { User } from './decorator/user.decorator';
+import { JwtGuard } from './guard/jwt-guard';
+import { JwtPayloadType } from 'types/jwtPayload-types';
 
 @Controller('user')
 export class UserController {
@@ -19,7 +21,8 @@ export class UserController {
     return this.userService.generateUserResponse(user);
   }
   @Get()
-  getCurrentUser(@User() user) {
+  @UseGuards(JwtGuard)
+  getCurrentUser(@User() user: JwtPayloadType) {
     return this.userService.generateUserResponse(user);
   }
 }
