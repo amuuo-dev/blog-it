@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ArticleEntity } from './entity/article.entity';
 import { Repository } from 'typeorm';
 import slugify from 'slugify';
+import { UpdateArticleDto } from './dto/update-article.dto';
 
 @Injectable()
 export class ArticleService {
@@ -63,5 +64,22 @@ export class ArticleService {
       throw new NotFoundException(`Article with ID ${slug} not found`);
     }
     return 'Article deleted successfully';
+  }
+
+  async update(
+    slug: string,
+    updateArticleDto: UpdateArticleDto,
+    userId: number,
+  ) {
+    const article = await this.findBySlug(slug);
+    if (article.authorId !== userId) {
+      throw new UnauthorizedException('You are not the owner of the article!');
+    }
+
+    if (updateArticleDto.title) {
+      article.slug = this.generateSlug(updateArticleDto.title);
+    }
+    Object.assign(article, updateArticleDto);
+    return await this.articleRepository.save(article);
   }
 }

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { JwtGuard } from 'src/user/guard/jwt-guard';
 import { User } from 'src/user/decorator/user.decorator';
 import { UserEntity } from 'src/user/entity/user.entity';
 import { CreateArticleDto } from './dto/create-article.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
 
 @Controller('articles')
 export class ArticleController {
@@ -35,5 +37,19 @@ export class ArticleController {
   @UseGuards(JwtGuard)
   async remove(@Param('slug') slug: string, @User('id') userId: number) {
     return await this.articleService.delete(slug, userId);
+  }
+  @Patch(':slug')
+  @UseGuards(JwtGuard)
+  async updateArticle(
+    @Param('slug') slug: string,
+    @Body() updateArticle: UpdateArticleDto,
+    @User('id') userId: number,
+  ) {
+    const updatedArticle = await this.articleService.update(
+      slug,
+      updateArticle,
+      userId,
+    );
+    return this.articleService.generateArticleResponse(updatedArticle);
   }
 }
