@@ -1,7 +1,11 @@
+import { UserEntity } from '../../user/entity/user.entity';
+
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -34,4 +38,11 @@ export class ArticleEntity {
 
   @Column({ default: 0 })
   favoritesCount: number;
+
+  @Column()
+  authorId: number;
+
+  @ManyToOne(() => UserEntity, (user) => user.articles)
+  @JoinColumn({ name: 'authorId' })
+  author: UserEntity;
 }
