@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
-import { Request } from 'express';
 import { User } from './decorator/user.decorator';
 import { JwtGuard } from './guard/jwt-guard';
 import { JwtPayloadType } from 'types/jwtPayload-types';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -24,5 +24,12 @@ export class UserController {
   @UseGuards(JwtGuard)
   getCurrentUser(@User() user: JwtPayloadType) {
     return this.userService.generateUserResponse(user);
+  }
+
+  @Patch('update')
+  @UseGuards(JwtGuard)
+  async update(@User('id') userId: number, @Body() updateUser: UpdateUserDto) {
+    const updatedUser = await this.userService.update(userId, updateUser);
+    return this.userService.generateUserResponse(updatedUser);
   }
 }

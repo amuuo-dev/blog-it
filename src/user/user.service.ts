@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { sign } from 'jsonwebtoken';
 import { LoginDto } from './dto/login.dto';
 import { instanceToPlain } from 'class-transformer';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -77,5 +78,11 @@ export class UserService {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`user with id ${id} not found`);
     return user;
+  }
+
+  async update(userId: number, updateUser: UpdateUserDto) {
+    const user = await this.findById(userId);
+    Object.assign(user, updateUser);
+    return await this.userRepository.save(user);
   }
 }
