@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UserEntity } from 'src/user/entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -32,5 +36,32 @@ export class ArticleService {
   generateSlug(title: string) {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
     return `${slugify(title, { lower: true })}-${id}`;
+  }
+
+  async findBySlug(slug: string) {
+    const article = await this.articleRepository.findOne({
+      where: { slug },
+    });
+    if (!article)
+      throw new NotFoundException('article with that slug not found!');
+
+    return article;
+  }
+
+  async getOne(slug: string) {
+    return await this.findBySlug(slug);
+  }
+
+  async delete(slug: string, userId: number) {
+    const article = await this.findBySlug(slug);
+
+    if (article.authorId !== userId) {
+      throw new UnauthorizedException('You are not the owner of the article!');
+    }
+    const result = await this.articleRepository.delete({ slug });
+    if (result.affected === 0) {
+      throw new NotFoundException(`Article with ID ${slug} not found`);
+    }
+    return 'Article deleted successfully';
   }
 }
