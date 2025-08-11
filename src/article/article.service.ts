@@ -59,9 +59,21 @@ export class ArticleService {
       queryBuidler.andWhere('author.id = :id', { id: authorIdFromUserName.id });
     }
 
-    // if (query.favorited) {
+    if (query.favorited) {
+      const userWithFavorites = await this.userRepository.findOne({
+        where: { username: query.favorited },
+        relations: ['favorites'],
+      });
 
-    // }
+      if (!userWithFavorites || userWithFavorites.favorites.length === 0) {
+        throw new NotFoundException('You dont have any favorite articles');
+      }
+
+      const favoriteIds = userWithFavorites?.favorites.map(
+        (articles) => articles.id,
+      );
+      queryBuidler.andWhere('articles.id IN (:...ids)', { ids: favoriteIds });
+    }
 
     if (query.limit) {
       queryBuidler.limit(query.limit);
