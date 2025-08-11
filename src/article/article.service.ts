@@ -127,4 +127,30 @@ export class ArticleService {
     Object.assign(article, updateArticleDto);
     return await this.articleRepository.save(article);
   }
+
+  async addToFavorite(userId: number, slug: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['favorites'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`did find user with this ${userId} id`);
+    }
+
+    const currentArticle = await this.findBySlug(slug);
+
+    const isNotLiked = !user?.favorites.find(
+      (article) => article.slug === currentArticle.slug,
+    );
+
+    if (isNotLiked) {
+      user?.favorites.push(currentArticle);
+      currentArticle.favoritesCount++;
+      await this.articleRepository.save(currentArticle);
+      await this.userRepository.save(user);
+    }
+
+    return this.generateArticleResponse(currentArticle);
+  }
 }

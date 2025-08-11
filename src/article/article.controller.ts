@@ -59,4 +59,13 @@ export class ArticleController {
   async findAll(@Query() query: QueryArticleDto) {
     return this.articleService.getAll(query);
   }
+
+  @Post(':slug/favorite')
+  @UseGuards(JwtGuard)
+  async addFavoriteArticle(
+    @User('id') userId: number,
+    @Param('slug') slug: string,
+  ) {
+    return await this.articleService.addToFavorite(userId, slug);
+  }
 }
