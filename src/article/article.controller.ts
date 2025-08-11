@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ArticleService } from './article.service';
@@ -14,6 +15,7 @@ import { User } from 'src/user/decorator/user.decorator';
 import { UserEntity } from 'src/user/entity/user.entity';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
+import { QueryArticleDto } from './dto/query-article.dto';
 
 @Controller('articles')
 export class ArticleController {
@@ -51,5 +53,10 @@ export class ArticleController {
       userId,
     );
     return this.articleService.generateArticleResponse(updatedArticle);
+  }
+
+  @Get()
+  async findAll(@Query() query: QueryArticleDto) {
+    return this.articleService.getAll(query);
   }
 }

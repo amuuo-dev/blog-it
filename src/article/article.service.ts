@@ -10,12 +10,15 @@ import { ArticleEntity } from './entity/article.entity';
 import { Repository } from 'typeorm';
 import slugify from 'slugify';
 import { UpdateArticleDto } from './dto/update-article.dto';
+import { QueryArticleDto } from './dto/query-article.dto';
 
 @Injectable()
 export class ArticleService {
   constructor(
     @InjectRepository(ArticleEntity)
     private readonly articleRepository: Repository<ArticleEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
   ) {}
 
   async create(user: UserEntity, articleDto: CreateArticleDto) {
@@ -28,6 +31,48 @@ export class ArticleService {
 
     const newArticle = await this.articleRepository.save(article);
     return this.generateArticleResponse(newArticle);
+  }
+
+  async getAll(query: QueryArticleDto) {
+    //could have used relation in find method but need to filter data
+    //i want not only the result i also want to filter all articles so i go for querybuilder
+    const queryBuidler = this.articleRepository
+      .createQueryBuilder('articles')
+      .leftJoinAndSelect('articles.author', 'author');
+
+    if (query.tag) {
+      queryBuidler.andWhere('articles.tagList ILIKE :tag', {
+        tag: `%${query.tag}%`,
+      });
+    }
+
+    if (query.author) {
+      const authorIdFromUserName = await this.userRepository.findOne({
+        where: { username: query.author },
+      });
+
+      if (!authorIdFromUserName) {
+        throw new NotFoundException(`Author ${query.author} Not Found`);
+      }
+
+      //a bit confusing but here author is the alias in leftjoin and select
+      queryBuidler.andWhere('author.id = :id', { id: authorIdFromUserName.id });
+    }
+
+    if (query.limit) {
+      queryBuidler.limit(query.limit);
+    }
+
+    if (query.offset) {
+      queryBuidler.offset(query.offset);
+    }
+
+    //latest article first ,,oldest last
+    queryBuidler.orderBy('articles.createdAt', 'DESC');
+
+    const [articles, articlesCount] = await queryBuidler.getManyAndCount();
+
+    return { articles, articlesCount };
   }
 
   generateArticleResponse(article: ArticleEntity) {
