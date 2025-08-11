@@ -59,6 +59,10 @@ export class ArticleService {
       queryBuidler.andWhere('author.id = :id', { id: authorIdFromUserName.id });
     }
 
+    // if (query.favorited) {
+
+    // }
+
     if (query.limit) {
       queryBuidler.limit(query.limit);
     }
@@ -151,6 +155,33 @@ export class ArticleService {
       await this.userRepository.save(user);
     }
 
+    return this.generateArticleResponse(currentArticle);
+  }
+
+  async dislike(userId: number, slug: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['favorites'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`did find user with this ${userId} id`);
+    }
+    const currentArticle = await this.findBySlug(slug);
+
+    const articleIndex = user.favorites.findIndex(
+      (article) => article.slug === currentArticle.slug,
+    );
+    if (articleIndex >= 0) {
+      //ensures favorite count never goes below zero also decrementing it
+      currentArticle.favoritesCount = Math.max(
+        currentArticle.favoritesCount - 1,
+        0,
+      );
+      user.favorites.splice(articleIndex, 1);
+      await this.articleRepository.save(currentArticle);
+      await this.userRepository.save(user);
+    }
     return this.generateArticleResponse(currentArticle);
   }
 }

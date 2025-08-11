@@ -68,4 +68,12 @@ export class ArticleController {
   ) {
     return await this.articleService.addToFavorite(userId, slug);
   }
+  @Delete(':slug/favorite')
+  @UseGuards(JwtGuard)
+  async removeFavorite(
+    @User('id') userId: number,
+    @Param('slug') slug: string,
+  ) {
+    return await this.articleService.dislike(userId, slug);
+  }
 }

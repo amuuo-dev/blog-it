@@ -17,4 +17,8 @@ export class QueryArticleDto {
   @IsOptional()
   @IsNumber()
   offset?: number;
+
+  @IsOptional()
+  @IsString()
+  favorited?: string;
 }
