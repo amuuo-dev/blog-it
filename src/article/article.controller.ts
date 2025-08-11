@@ -56,6 +56,7 @@ export class ArticleController {
   }
 
   @Get()
+  @UseGuards(JwtGuard)
   async findAll(@Query() query: QueryArticleDto, @User('id') userId: number) {
     return this.articleService.getAll(query, userId);
   }
