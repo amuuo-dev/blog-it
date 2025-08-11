@@ -33,7 +33,7 @@ export class ArticleService {
     return this.generateArticleResponse(newArticle);
   }
 
-  async getAll(query: QueryArticleDto) {
+  async getAll(query: QueryArticleDto, userId: number) {
     //could have used relation in find method but need to filter data
     //i want not only the result i also want to filter all articles so i go for querybuilder
     const queryBuidler = this.articleRepository
@@ -88,7 +88,25 @@ export class ArticleService {
 
     const [articles, articlesCount] = await queryBuidler.getManyAndCount();
 
-    return { articles, articlesCount };
+    let userFavoriteIds: number[] = [];
+
+    if (userId) {
+      const currentUser = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['favorites'],
+      });
+
+      userFavoriteIds = currentUser
+        ? currentUser.favorites.map((article) => article.id)
+        : [];
+    }
+
+    const articlesWithFavorite = articles.map((article) => {
+      const favorited = userFavoriteIds.includes(article.id);
+      return { ...article, favorited };
+    });
+
+    return { articles: articlesWithFavorite, articlesCount };
   }
 
   generateArticleResponse(article: ArticleEntity) {

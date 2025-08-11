@@ -56,8 +56,8 @@ export class ArticleController {
   }
 
   @Get()
-  async findAll(@Query() query: QueryArticleDto) {
-    return this.articleService.getAll(query);
+  async findAll(@Query() query: QueryArticleDto, @User('id') userId: number) {
+    return this.articleService.getAll(query, userId);
   }
 
   @Post(':slug/favorite')
