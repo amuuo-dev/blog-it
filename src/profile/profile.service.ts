@@ -55,6 +55,22 @@ export class ProfileService {
     return { profile: followingProfile, following: true };
   }
 
+  async unfollow(userId: number, followingUsername: string) {
+    const followingProfile = await this.userRepository.findOne({
+      where: { username: followingUsername },
+    });
+    if (!followingProfile) throw new NotFoundException('profile not found');
+
+    if (userId === followingProfile.id)
+      throw new BadGatewayException('you just cant do this');
+
+    await this.followRepository.delete({
+      followerId: userId,
+      followingId: followingProfile.id,
+    });
+    return { profile: followingProfile, following: false };
+  }
+
   generateProfileResponse(profile, following: boolean) {
     return {
       profile: {

@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { User } from 'src/user/decorator/user.decorator';
 import { JwtGuard } from 'src/user/guard/jwt-guard';
@@ -19,6 +26,19 @@ export class ProfileController {
     @Param('username') followingUsername: string,
   ) {
     const { profile, following } = await this.profileService.follow(
+      userId,
+      followingUsername,
+    );
+    return this.profileService.generateProfileResponse(profile, following);
+  }
+
+  @Delete(':username/follow')
+  @UseGuards(JwtGuard)
+  async unfollowProfile(
+    @User('id') userId: number,
+    @Param('username') followingUsername: string,
+  ) {
+    const { profile, following } = await this.profileService.unfollow(
       userId,
       followingUsername,
     );
