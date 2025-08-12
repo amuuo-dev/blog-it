@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import slugify from 'slugify';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { QueryArticleDto } from './dto/query-article.dto';
+import { FollowEntity } from 'src/profile/entity/follow.entity';
 
 @Injectable()
 export class ArticleService {
@@ -19,6 +20,8 @@ export class ArticleService {
     private readonly articleRepository: Repository<ArticleEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(FollowEntity)
+    private readonly followRepository: Repository<FollowEntity>,
   ) {}
 
   async create(user: UserEntity, articleDto: CreateArticleDto) {
@@ -107,6 +110,50 @@ export class ArticleService {
     });
 
     return { articles: articlesWithFavorite, articlesCount };
+  }
+
+  async getFeed(userId: number, query: QueryArticleDto) {
+    const follows = await this.followRepository.find({
+      where: { followerId: userId },
+    });
+
+    if (!follows || follows.length === 0) {
+      return {
+        articles: [],
+        articlesCount: 0,
+        message: 'You are not following anyone yet.',
+      };
+    }
+
+    const followingIds = follows.map((follow) => follow.followingId);
+
+    const queryBuidler = this.articleRepository
+      .createQueryBuilder('articles')
+      .leftJoinAndSelect('articles.author', 'author')
+      .orderBy('articles.createdAt', 'DESC');
+
+    queryBuidler.andWhere('articles.authorId IN (:...followingIds)', {
+      followingIds: followingIds,
+    });
+
+    const articleCount = await queryBuidler.getCount();
+
+    if (query.limit) queryBuidler.limit(query.limit);
+
+    if (query.offset) queryBuidler.offset(query.offset);
+
+    const articles = await queryBuidler.getMany();
+
+    if (articles.length === 0) {
+      return {
+        articles: [],
+        articleCount,
+        message:
+          "No articles available — the people you follow haven't posted yet.",
+      };
+    }
+
+    return { articles, articleCount };
   }
 
   generateArticleResponse(article: ArticleEntity) {

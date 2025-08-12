@@ -30,6 +30,15 @@ export class ArticleController {
     return await this.articleService.create(user, createdArticle);
   }
 
+  @Get('feed')
+  @UseGuards(JwtGuard)
+  async getUserFeeds(
+    @User('id') userId: number,
+    @Query() query: QueryArticleDto,
+  ) {
+    return await this.articleService.getFeed(userId, query);
+  }
+
   @Get(':slug')
   async findOne(@Param('slug') slug: string) {
     const article = await this.articleService.getOne(slug);
