@@ -50,6 +50,32 @@ export class CommentService {
     return this.generateCommentsResponse(comments);
   }
 
+  async delete(userId: number, slug: string, commentId: number) {
+    const article = await this.articleRepository.findOne({
+      where: { slug },
+    });
+
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
+    const comment = await this.commentRepository.findOne({
+      where: {
+        id: commentId,
+        articleId: article.id,
+      },
+    });
+    if (!comment) throw new NotFoundException('comment not found');
+
+    if (comment.authorId !== userId) {
+      throw new NotFoundException(
+        'You cant delete since you are not owner of this comment',
+      );
+    }
+
+    return await this.commentRepository.remove(comment);
+  }
+
   generateCommentResponse(comment: CommentEntity) {
     return {
       comment,

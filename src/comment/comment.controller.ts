@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { JwtGuard } from 'src/user/guard/jwt-guard';
 import { User } from 'src/user/decorator/user.decorator';
@@ -20,5 +28,14 @@ export class CommentController {
   @Get(':slug/comments')
   async getAllCommentsFromPost(@Param('slug') slug: string) {
     return await this.commentService.getAllComments(slug);
+  }
+  @Delete(':slug/comments/:id')
+  @UseGuards(JwtGuard)
+  async deleteComment(
+    @Param('slug') slug: string,
+    @User('id') userId: number,
+    @Param('id') commentId: number,
+  ) {
+    return await this.commentService.delete(userId, slug, commentId);
   }
 }
