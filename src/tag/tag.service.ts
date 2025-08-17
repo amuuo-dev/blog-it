@@ -11,8 +11,11 @@ export class TagService {
   ) {}
 
   async getAll() {
-    const alltags = await this.tagRepository.find();
-    const tags: string[] = alltags.map((tag) => tag.name);
+    const allTags = await this.tagRepository.find();
+
+    return this.generateTagsResponse(allTags);
+  }
+  generateTagsResponse(tags: TagsEntity[]) {
     return { tags };
   }
 }

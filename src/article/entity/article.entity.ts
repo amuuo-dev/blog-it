@@ -1,3 +1,4 @@
+import { TagsEntity } from '../../tag/entities/tag.entity';
 import { CommentEntity } from '../../comment/entity/comment.entity';
 import { UserEntity } from '../../user/entity/user.entity';
 
@@ -6,6 +7,8 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -29,8 +32,8 @@ export class ArticleEntity {
   @Column()
   body: string;
 
-  @Column('simple-array')
-  tagList: string[];
+  // @Column('simple-array')
+  // tagList: string[];
 
   @CreateDateColumn()
   createdAt: Date;
@@ -50,4 +53,8 @@ export class ArticleEntity {
 
   @OneToMany(() => CommentEntity, (comment) => comment.article)
   comments: CommentEntity[];
+
+  @ManyToMany(() => TagsEntity, (tag) => tag.articles, { cascade: true })
+  @JoinTable({ name: 'article_tags' })
+  tags: TagsEntity[];
 }

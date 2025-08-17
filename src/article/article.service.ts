@@ -12,6 +12,7 @@ import slugify from 'slugify';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { QueryArticleDto } from './dto/query-article.dto';
 import { FollowEntity } from 'src/profile/entity/follow.entity';
+import { TagsEntity } from 'src/tag/entities/tag.entity';
 
 @Injectable()
 export class ArticleService {
@@ -22,17 +23,40 @@ export class ArticleService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(FollowEntity)
     private readonly followRepository: Repository<FollowEntity>,
+    @InjectRepository(TagsEntity)
+    private readonly tagRepository: Repository<TagsEntity>,
   ) {}
 
   async create(user: UserEntity, articleDto: CreateArticleDto) {
-    const article = this.articleRepository.create(articleDto);
-    if (!article.tagList) {
-      article.tagList = [];
-    }
+    const { tags = [], ...articleData } = articleDto;
+
+    const article = this.articleRepository.create(articleData);
     article.slug = this.generateSlug(article.title);
     article.author = user;
 
+    //check for existing tags since am not storing duplicates also creating new tags
+    if (tags.length) {
+      const tagEntities: TagsEntity[] = [];
+
+      for (const tagName of tags) {
+        const existingTag = await this.tagRepository.findOne({
+          where: { name: tagName },
+        });
+
+        if (existingTag) {
+          tagEntities.push(existingTag);
+        } else {
+          const newTag = this.tagRepository.create({ name: tagName });
+          const savedTag = await this.tagRepository.save(newTag);
+          tagEntities.push(savedTag);
+        }
+      }
+
+      article.tags = tagEntities;
+    }
+
     const newArticle = await this.articleRepository.save(article);
+
     return this.generateArticleResponse(newArticle);
   }
 

@@ -6,10 +6,16 @@ import { ArticleEntity } from './entity/article.entity';
 import { UserModule } from 'src/user/user.module';
 import { UserEntity } from 'src/user/entity/user.entity';
 import { FollowEntity } from 'src/profile/entity/follow.entity';
+import { TagsEntity } from 'src/tag/entities/tag.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ArticleEntity, UserEntity, FollowEntity]),
+    TypeOrmModule.forFeature([
+      ArticleEntity,
+      UserEntity,
+      FollowEntity,
+      TagsEntity,
+    ]),
     UserModule,
   ],
   controllers: [ArticleController],

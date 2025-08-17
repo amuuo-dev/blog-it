@@ -1,7 +1,9 @@
+import { ArticleEntity } from '../../article/entity/article.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -9,8 +11,11 @@ import {
 export class TagsEntity {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column()
+  @Column({ unique: true })
   name: string;
   @CreateDateColumn({ type: 'timestamp' })
   CreatedAt: Date;
+
+  @ManyToMany(() => ArticleEntity, (article) => article.tags)
+  articles: ArticleEntity[];
 }
