@@ -65,10 +65,11 @@ export class ArticleService {
     //i want not only the result i also want to filter all articles so i go for querybuilder
     const queryBuidler = this.articleRepository
       .createQueryBuilder('articles')
-      .leftJoinAndSelect('articles.author', 'author');
+      .leftJoinAndSelect('articles.author', 'author')
+      .leftJoinAndSelect('articles.tags', 'tags');
 
     if (query.tag) {
-      queryBuidler.andWhere('articles.tagList ILIKE :tag', {
+      queryBuidler.andWhere('tags.name ILIKE :tag', {
         tag: `%${query.tag}%`,
       });
     }
