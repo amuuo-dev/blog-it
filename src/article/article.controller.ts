@@ -30,6 +30,11 @@ export class ArticleController {
     return await this.articleService.create(user, createdArticle);
   }
 
+  @Get('all')
+  async getAllArticles() {
+    return await this.articleService.allArticlesWithoutLogin();
+  }
+
   @Get('feed')
   @UseGuards(JwtGuard)
   async getUserFeeds(

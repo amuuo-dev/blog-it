@@ -185,6 +185,10 @@ export class ArticleService {
     return { article };
   }
 
+  generateArticleResponses(article: ArticleEntity[]) {
+    return { article };
+  }
+
   generateSlug(title: string) {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
     return `${slugify(title, { lower: true })}-${id}`;
@@ -202,6 +206,13 @@ export class ArticleService {
 
   async getOne(slug: string) {
     return await this.findBySlug(slug);
+  }
+
+  async allArticlesWithoutLogin() {
+    const all = await this.articleRepository.find({
+      relations: ['author', 'tags', 'comments'],
+    });
+    return this.generateArticleResponses(all);
   }
 
   async delete(slug: string, userId: number) {
