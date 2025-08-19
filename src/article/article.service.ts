@@ -210,6 +210,7 @@ export class ArticleService {
 
   async allArticlesWithoutLogin() {
     const all = await this.articleRepository.find({
+      order: { createdAt: 'DESC' },
       relations: ['author', 'tags', 'comments'],
     });
     return this.generateArticleResponses(all);
